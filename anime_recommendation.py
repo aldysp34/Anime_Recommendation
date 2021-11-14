@@ -111,15 +111,14 @@ cos_sim_df
 
 """## Membuat fungsi untuk mendapatkan rekomendasi anime"""
 
-def anime_recommendations(animeName, similarity_data=cos_sim_df, items=df[['name', 'genre']], k=15):
-    # Mengambil data dengan menggunakan argpartition 
-    index = similarity_data.loc[:,animeName].to_numpy().argpartition(
-        range(-1, -k, -1))
-    
-    # Mengambil data dengan similarity terbesar dari index yang ada
-    closest = similarity_data.columns[index[-1:-(k+2):-1]]
- 
-    return pd.DataFrame(closest).merge(items).head(k)
+def anime_recommendation(df, animeName, k = 15):
+    index = pd.Series(df.index, index = df["name"])
+    index = index[~index.index.duplicated(keep = "last")]
+    anime_index = index[animeName]
+    sim_score = pd.DataFrame(cos_sim[anime_index], columns = ["rating"])
+    sim_anime = sim_score.sort_values(by = "rating", ascending = False).  \
+            iloc[1:k].index
+    return pd.DataFrame(df[["name", "genre", "rating"]].iloc[sim_anime])
 
 """# Testing Model
 
@@ -127,4 +126,6 @@ def anime_recommendations(animeName, similarity_data=cos_sim_df, items=df[['name
 """
 
 anime_recommendation(df, 'One Piece')
+
+
 
